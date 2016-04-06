@@ -16,37 +16,10 @@ public class PatternsParser{
 	public static void main(String args[])
 	{
 		DOMConfigurator.configure("log4j.xml");
-		
 		usage(args);
-		try{
-		log("started with pattern: " + args[0] + ", input dir: " + args[1]);		
-		SOURCE_DIR=args[3];
-		List<String> quotePatterns = readFile(SOURCE_DIR + "/QuoteRegex.txt");
-		List<String> lookupPatterns = readFile(args[0]);		
-		Map<String,List<String>> mapTextLines = readAllFiles(args[1]);
-	
-		Map<String,String> allQuotesMap =new HashMap<String,String>();
+		new PatternsParser(args[0],args[1],args[2],args[3]);
 		
-		
-		for (Map.Entry<String, List<String>> entry : mapTextLines.entrySet()) {					
-			List<String> quotes = applyGroupRegex(entry.getValue(),quotePatterns);
-			for(String quote : quotes){
-				allQuotesMap.put(entry.getKey(),quote);
-			}
-			}
-		
-		Set<MatchedQuote> matchResults = applyMatchRegex(allQuotesMap,lookupPatterns);
-		log("number of lookup matches found is: " + matchResults.size());
-		
-		reportResults(args[2],matchResults);
-		
-		}catch(Exception ex)
-		{
-			ex.printStackTrace();
-		}
 	}
-	
-
 	
 	private static void usage(String[] args)
 	{
@@ -61,10 +34,45 @@ public class PatternsParser{
 		}
 	}
 	
+
+	public PatternsParser(String patternFile_,String textDir_
+			,String outputFile_,String sourceDir_)
+	{
+		
+		try{
+			log("started with pattern: " +patternFile_ + ", input dir: " +textDir_);		
+			SOURCE_DIR=sourceDir_;
+			List<String> quotePatterns = readFile(SOURCE_DIR + "/QuoteRegex.txt");
+			List<String> lookupPatterns = readFile(patternFile_);		
+			Map<String,List<String>> mapTextLines = readAllFiles(textDir_);
+		
+			Map<String,String> allQuotesMap =new HashMap<String,String>();
+			
+			
+			for (Map.Entry<String, List<String>> entry : mapTextLines.entrySet()) {					
+				List<String> quotes = applyGroupRegex(entry.getValue(),quotePatterns);
+				for(String quote : quotes){
+					allQuotesMap.put(entry.getKey(),quote);
+				}
+				}
+			
+			Set<MatchedQuote> matchResults = applyMatchRegex(allQuotesMap,lookupPatterns);
+			log("number of lookup matches found is: " + matchResults.size());
+			
+			reportResults(outputFile_,matchResults);
+			
+			}catch(Exception ex)
+			{
+				ex.printStackTrace();
+			}
+	}
+	
+	
+	
 	
 	
 		
-	static void reportResults(String reportFile,Set<MatchedQuote> quoteSet)
+	void reportResults(String reportFile,Set<MatchedQuote> quoteSet)
 	throws IOException, QueryException{
 		log("in reportResults for " + reportFile);
 		File file = new File(reportFile);
@@ -86,7 +94,7 @@ public class PatternsParser{
 	}
 	
 	//Read either single file or all files in directory
-	static Map<String,List<String>> readAllFiles(String loc) throws IOException
+	 Map<String,List<String>> readAllFiles(String loc) throws IOException
 	{
 		log("in readAllFiles for " + loc);
 		 Map<String,List<String>> results = new HashMap<String,List<String>>();
@@ -109,13 +117,13 @@ public class PatternsParser{
 		return results;
 	}
 	
-	static FilenameFilter FILTER = new FilenameFilter(){
+	 FilenameFilter FILTER = new FilenameFilter(){
 		 public boolean accept(File dir, String name) {
             return name.toLowerCase().endsWith(".txt");
         }
 	};
 	
-	static String GetReportHtmlTable(Set<MatchedQuote> quoteSet) throws IOException, QueryException{
+	 String GetReportHtmlTable(Set<MatchedQuote> quoteSet) throws IOException, QueryException{
 		StringBuilder sb = new StringBuilder();
 		String header = readString(SOURCE_DIR+"/HtmlHeader.txt");
 		sb.append(header);
@@ -140,7 +148,7 @@ public class PatternsParser{
 		return sb.toString();
 	}
 	
-	 static String GetCountTable(Set<MatchedQuote> quoteSet) throws QueryException
+	  String GetCountTable(Set<MatchedQuote> quoteSet) throws QueryException
 	 {
 		 StringBuilder sb = new StringBuilder();
 		
@@ -165,7 +173,7 @@ public class PatternsParser{
 	 }
 
 	
-	public static Set<MatchedQuote> applyMatchRegex(Map<String,String> lines
+	private Set<MatchedQuote> applyMatchRegex(Map<String,String> lines
 	, List<String> regexList)
 	{
 		log("in applyMatchRegex for " + lines.size() + " lines and " + regexList.size() + " expressions");
@@ -193,7 +201,7 @@ public class PatternsParser{
 		return results;
 	}
 	
-	public static List<String> applyGroupRegex(List<String> lines, List<String> regexList)
+	private List<String> applyGroupRegex(List<String> lines, List<String> regexList)
 	{
 		List<String> results = new LinkedList<String>();
 		for(String regex : regexList)
@@ -219,7 +227,7 @@ public class PatternsParser{
 		return results;
 	}
 	
-	public static void log(String s)
+	private static void log(String s)
 	{
 		logger.info( s );
 	}
@@ -251,7 +259,7 @@ public class PatternsParser{
 		SPECIAL_CHARS_REPLACEMENT_MAP.put(c2,'"');
 	}
 	
-	static List<String> replaceSpecialChars( List<String> lines){
+	private List<String> replaceSpecialChars( List<String> lines){
 		 List<String> results = new  LinkedList<String>();
 		 for(String line: lines){
 			 for(Map.Entry<Character, Character> cEntry: SPECIAL_CHARS_REPLACEMENT_MAP.entrySet()){
@@ -264,7 +272,7 @@ public class PatternsParser{
 	
 
 	
-	static List<String> readFile(String fileName) throws IOException {
+	private List<String> readFile(String fileName) throws IOException {
 		List<String>  results = new LinkedList<String>();
 	    BufferedReader br = new BufferedReader(new FileReader(fileName));
 	    try {
