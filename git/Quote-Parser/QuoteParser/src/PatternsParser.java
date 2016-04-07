@@ -7,6 +7,12 @@ import java.nio.charset.*;
 import org.apache.log4j.xml.*;
 import joquery.core.QueryException;
 import joquery.*;
+
+/**
+ * 
+ * @author gkatz
+ *
+ */
 public class PatternsParser{
 	
 	private static String SOURCE_DIR;
