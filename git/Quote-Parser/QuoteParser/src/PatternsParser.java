@@ -77,7 +77,13 @@ public class PatternsParser{
 	
 	
 	
-		
+	/**
+	 * Generates an HTML report	
+	 * @param reportFile
+	 * @param quoteSet
+	 * @throws IOException
+	 * @throws QueryException
+	 */
 	void reportResults(String reportFile,Set<MatchedQuote> quoteSet)
 	throws IOException, QueryException{
 		log("in reportResults for " + reportFile);
@@ -99,23 +105,29 @@ public class PatternsParser{
 }  
 	}
 	
-	//Read either single file or all files in directory
-	 Map<String,List<String>> readAllFiles(String loc) throws IOException
+	
+	/**
+	 * Reads all files in a directory into list of lines of text
+	 * @param directory_
+	 * @return
+	 * @throws IOException
+	 */
+	 Map<String,List<String>> readAllFiles(String directory_) throws IOException
 	{
-		log("in readAllFiles for " + loc);
+		log("in readAllFiles for " + directory_);
 		 Map<String,List<String>> results = new HashMap<String,List<String>>();
-		File file = new File(loc);
+		File file = new File(directory_);
 		
 		if(!file.isDirectory()){
-			List<String> lines = readFile(loc);
+			List<String> lines = readFile(directory_);
 			
 			lines = replaceSpecialChars(lines);
-			results.put(loc,lines);
+			results.put(directory_,lines);
 		}else{
 			String[] files = file.list(FILTER);
 			for(String fileName : files)
 			{
-				Map<String,List<String>> dirMap = readAllFiles(loc + "/" + fileName);
+				Map<String,List<String>> dirMap = readAllFiles(directory_ + "/" + fileName);
 				results.putAll(dirMap);
 			}
 		}
@@ -123,6 +135,9 @@ public class PatternsParser{
 		return results;
 	}
 	
+	 /**
+	  * Currently only .txt is supported
+	  */
 	 FilenameFilter FILTER = new FilenameFilter(){
 		 public boolean accept(File dir, String name) {
             return name.toLowerCase().endsWith(".txt");
@@ -154,6 +169,13 @@ public class PatternsParser{
 		return sb.toString();
 	}
 	
+	 
+	 /**
+	  * Use the nifty library of joquery to to LINQ like in memory queries of collections
+	  * @param quoteSet
+	  * @return
+	  * @throws QueryException
+	  */
 	  String GetCountTable(Set<MatchedQuote> quoteSet) throws QueryException
 	 {
 		 StringBuilder sb = new StringBuilder();
@@ -161,8 +183,7 @@ public class PatternsParser{
 		 GroupQuery<Integer,MatchedQuote> query = 
 				 CQ.<MatchedQuote,MatchedQuote>query(quoteSet)
 				    .group();
-		 query = query.groupBy("pattern");
-		
+		 query = query.groupBy("pattern");		
 		 
 				  
 		Collection<Grouping<Integer,MatchedQuote>> grouped = query.list();
@@ -178,7 +199,12 @@ public class PatternsParser{
 		 return sb.toString();
 	 }
 
-	
+	/**
+	 * Apply list of regex expressions for each line of text
+	 * @param lines
+	 * @param regexList
+	 * @return
+	 */
 	private Set<MatchedQuote> applyMatchRegex(Map<String,String> lines
 	, List<String> regexList)
 	{
@@ -198,15 +224,19 @@ public class PatternsParser{
 								MatchedQuote(lineEntry.getKey(),
 										regex,lineEntry.getValue());
 						results.add(matchedQuote);
-						}
-						
-					}
-				
+						}						
+					}				
 		}		
 		log("applyMatchRegex returning: " + results.size() + " quotes" );
 		return results;
 	}
 	
+	/**
+	 * Captures any quoted text
+	 * @param lines
+	 * @param regexList
+	 * @return
+	 */
 	private List<String> applyGroupRegex(List<String> lines, List<String> regexList)
 	{
 		List<String> results = new LinkedList<String>();
@@ -238,7 +268,12 @@ public class PatternsParser{
 		logger.info( s );
 	}
 		
-	
+	/**
+	 * Reads file into String
+	 * @param fileName
+	 * @return
+	 * @throws IOException
+	 */
 	static String readString(String fileName) throws IOException {
 		StringBuilder results = new StringBuilder();
 		FileReader reader = new FileReader(fileName);	
@@ -257,6 +292,9 @@ public class PatternsParser{
 	}
 	
 	
+	/**
+	 * Special characters replaced with double quotes
+	 */
 	static Map<Character,Character> SPECIAL_CHARS_REPLACEMENT_MAP = new HashMap<Character,Character>();
 	static{
 		Character c1 = '“';
@@ -264,6 +302,7 @@ public class PatternsParser{
 		SPECIAL_CHARS_REPLACEMENT_MAP.put(c1,'"');
 		SPECIAL_CHARS_REPLACEMENT_MAP.put(c2,'"');
 	}
+	
 	
 	private List<String> replaceSpecialChars( List<String> lines){
 		 List<String> results = new  LinkedList<String>();
